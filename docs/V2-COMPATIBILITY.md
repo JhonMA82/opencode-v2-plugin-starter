@@ -156,42 +156,39 @@ Observed outside the host: a probe whose `@opentui/core` resolved to a separate 
 `remove expects a renderable child object` and nothing painted. Inside a real 2.0.16 TUI the same check passes, so the
 host unifies the copy. The hazard is vendoring your own, not depending on it: keep it a peer dependency.
 
-### `markdown.registerCodeBlockRenderer` never fires in the conversation
+### `markdown.registerCodeBlockRenderer` works, but only on the assistant path
 
-Markdown rendering in the TUI works, and that is the trap: tables, emphasis and syntax-highlighted code come from
-OpenTUI's **default** renderer, which never touches plugin code. A fenced block with a plugin renderer is a different
-path, and on 2.0.16 that path is not taken.
+The API is implemented, the host wires it, and OpenTUI dispatches code tokens to it. A fence **written by the user**
+never reaches it, which is easy to misread as the whole feature being dead.
 
-The mechanism exists in the host, in full:
+The host side, in order:
 
 ```js
-// registration, normalising the language
-markdown: { registerCodeBlockRenderer(lang, render) {
-  const key = rh(lang); if (!key) throw Error("Markdown code-block language is required");
-  if (registry.has("markdown", key)) throw Error(`... already registered: ${key}`);
-}}
-// every active plugin's map merged into one code-block-only renderNode
-let composed = tK(() => Object.fromEntries(markdownMaps().flatMap(m => Object.entries(m))))
-// dispatch
+// the plugin manager merges every active plugin's map into one code-block-only renderNode
+let N = tK(() => Object.fromEntries(markdownMaps().flatMap(m => Object.entries(m))))
+// that node is exposed on the plugin context, and it IS what the UI reads
+{ plugins: { ..., markdown: N }, activate, deactivate }
+// dispatch, by normalised language
 (token, ctx) => { if (token.type !== "code") return; return map.get(rh(token.lang ?? ""))?.(token, ctx) }
 ```
 
-`rh` trims, keeps the first word, lowercases and resolves aliases, and it keeps `-` and `_`: `acme-todo`,
-`acme_todo` and `acmetodo` are three different keys, while `acmeTodo` collapses onto `acmetodo`.
+Two different surfaces render the transcript, and only one of them receives that node:
 
-Measured on a 2.0.16 host with probes that logged every invocation:
+```text
+assistant text part / reply   -> markdown renderable with renderNode = <composed>   [works]
+user message                  -> code renderable, filetype "markdown", no renderNode  [never fires]
+```
 
-- The host **accepts** the renderables a plugin builds, so returning a custom card is not the failure.
-- The plugin's rendering code is **correct**: the same card renders as intended on a real OpenTUI renderer.
-- Three fences in one message produced **zero invocations**: `acme-todo` (no builtin), `json` (no builtin) and
-  `math` (registered by the host builtin `opencode.latex`), all rendered as plain code.
-- ```mermaid also renders as plain code, and it is registered by a host builtin too. That datapoint is weaker than it
-  looks: a builtin returning `undefined` looks identical to never being called.
+OpenTUI is not the blocker: in `top-level` block mode `MarkdownRenderable` calls `renderCustomNode` for every
+top-level token, code blocks included. Verified on a real renderer using the host's own composition function: an
+`acme-todo` fence produced `dispatch:acme-todo` and then `HIT:acme-todo`, and the card it returned mounted.
 
-So the conversation's markdown view does not route fences through the composed renderNode. `markdownMode() ===
-"rendered"` in that view suggests it has a path of its own.
+Still unconfirmed: whether the returned card's *text* paints in the live host. Mounting a renderable returned from a
+markdown callback is a different path from adding one to the tree directly, and a box border has been observed
+without its children.
 
-Consequence: do not promise that a plugin can restyle fenced blocks on 2.0.16, and do not ship an example that does.
+So: a plugin can restyle fenced blocks in model output, must not expect it for fences the user typed, and should
+verify painting on a real host before promising it.
 
 ### Keymap command return type and ownership
 

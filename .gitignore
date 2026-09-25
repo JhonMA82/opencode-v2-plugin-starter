@@ -3,3 +3,6 @@ node_modules
 *.log
 dist
 coverage
+
+# scratch harnesses for host probes, not part of the starter
+.smoke/
