@@ -1,0 +1,13 @@
+{
+  "name": "acme-transforms",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Example OpenCode 2 server plugin: a tool, agent and command transforms plus a tool hook.",
+  "exports": {
+    ".": "./index.ts"
+  },
+  "dependencies": {
+    "@opencode/plugin": "2.0.16"
+  }
+}
