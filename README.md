@@ -19,10 +19,11 @@ It intentionally does not create a framework on top of OpenCode. Use the host AP
 
 - `src/index.ts` — native server plugin entrypoint.
 - `src/tui.tsx` — optional native CLI/TUI plugin entrypoint with a small footer + panel example.
-- `examples/` — ten runnable plugins: nine for the CLI/TUI surface (side panel, status rows, dialogs, settings
-  list, full screen route, events and notifications, custom markdown fence, slot placements, a left-sidebar task list) and
-  one for the server (tool, agent and command transforms plus a hook). Catalogued in `examples/README.md`. They are the reference for how a
-  native plugin is written, and each one only reads the `context` it is handed.
+- `examples/` — ten runnable plugins: nine for the CLI/TUI surface (side panel, status rows, dialogs, settings list,
+  full screen route, events and notifications, custom markdown fence, slot placements, left-sidebar task list) and one
+  for the server (tool, agent and command transforms plus a hook). Catalogued in `examples/README.md`, which is the
+  single source of truth for what each one proves. They are the reference for how a native plugin is written, and each
+  one only reads the `context` it is handed.
 - `AGENTS.md` — hard rules for coding agents.
 - `.opencode/skills/opencode-v2-plugin-authoring/` — reusable skill for authoring/extending plugins.
 - `docs/API-MAP.md` — map of current server and TUI capabilities.
@@ -84,12 +85,29 @@ export default Plugin.define({
 })
 ```
 
-## Side panel example
+## Examples
 
-`examples/session-info` is a complete CLI plugin that puts information in the session side panel: session status,
-model, messages, cost and tokens, plus environment facts (OpenCode version, git branch, MCP/skill/agent counts).
+`examples/` holds ten runnable plugins. The full catalog, with the context surface each one reads, lives in
+[`examples/README.md`](examples/README.md) - that file is the single source of truth, so it is where to look before
+writing new TUI code.
+
+| Example | Surface | Proves |
+|---|---|---|
+| `session-info` | `session.panel` | side panel from reactive `context.data.*`, panel-scoped keys |
+| `status-bar` | `prompt.footer.status`, `home.footer.status` | items in a host-owned status row, `storage.memory` |
+| `dialog` | dialogs | `select` to `alert` flow, plus a custom JSX modal with its own keys |
+| `setting` | dialogs + status | a settings list whose sections open sub-options, `storage.store` |
+| `dashboard` | `ui.router` + `ui.tabs` | a full screen route, `keymap.mode.push`, session tabs |
+| `notify` | events | `data.on` on typed events, `attention.notify`, unsubscribing |
+| `markdown` | markdown | a custom fence - **does not fire on 2.0.16**, see the finding |
+| `slots` | slots | the placement matrix, `sidebar.*`, `session.composer.top` |
+| `sidebar-todo` | `sidebar.content` | a left-sidebar task list read from the `todowrite` tool call |
+| `transforms` | `ctx.tool` `ctx.agent` `ctx.command` | a real tool, an idempotent agent transform, a command, a hook |
+
+Two shapes worth seeing in full, because most plugins need one of them:
 
 ```tsx
+// a side panel: contribute to the shared slot, decide if the selected name is yours
 context.ui.slot({
   append: "session.panel",
   render: (panel) => (
@@ -100,40 +118,8 @@ context.ui.slot({
 })
 ```
 
-Load it from `cli.json` with `{ "plugins": ["./examples/session-info"] }` and open it with `/info`.
-
-## Status bar example
-
-`examples/status-bar` contributes to the two native status rows instead of building a row of its own:
-
 ```tsx
-context.ui.slot({
-  append: "prompt.footer.status",
-  render: (input) => <PromptStatus input={input} detailed={settings.detailed} />,
-})
-```
-
-It shows the git branch, a `shell` mode badge, session model/cost/messages and a clock, and `/statusbar` toggles how
-much of it is shown. Load it with `{ "plugins": ["./examples/status-bar"] }`.
-
-## Dialog example
-
-`examples/dialog` uses the promise-based dialogs and a plugin-owned modal:
-
-```tsx
-const picked = await context.ui.dialog.select<string>({ title: "Session report", options })
-if (!picked) return // cancelling resolves to undefined
-```
-
-`/report` chains `select` → `alert` over session data; `/notes` mounts custom JSX with `set`/`show`/`clear` and its
-own keys. Load it with `{ "plugins": ["./examples/dialog"] }`.
-
-## Settings dialog example
-
-`examples/setting` is a settings list built from two native dialogs: the first lists sections and shows the value in
-effect, the second lists that section's options preselected with `current`.
-
-```tsx
+// a settings flow: every dialog result is optional, because cancelling resolves to undefined
 const section = await context.ui.dialog.select<Section>({ title: "Ajustes", options })
 if (!section) return
 const picked = await context.ui.dialog.select<Profile>({ title: "Perfil", current: settings.profile, options })
@@ -143,10 +129,8 @@ await setSettings((draft) => {
 })
 ```
 
-Preferences use `storage.store` (durable, async mutation) instead of TUI memory, and the stored values drive a status
-item so the change is visible. Load it with `{ "plugins": ["./examples/setting"] }`.
-
-Its slash command is `/setting`, singular: `/settings` belongs to the host, so an example must not take that name.
+Load any of them by path, for example `{ "plugins": ["./examples/session-info"] }` in `cli.json`. The catalog shows the
+whole set and how to load the server one.
 
 ## Philosophy
 
