@@ -135,6 +135,40 @@ context.ui.slot({
 })
 ```
 
+## Left sidebar: `sidebar.content` and `sidebar.footer`
+
+The left sidebar hands a `sessionID` to its slot input, so a contribution never has to look up the current session.
+`sidebar.content` is the body, `sidebar.footer` the one-line strip at the bottom.
+
+```tsx
+context.ui.slot({
+  append: "sidebar.content",
+  render: ({ sessionID }) => <MyPanel sessionID={sessionID} />,
+})
+```
+
+A plugin does not have to invent state for something the host already stores. Agent task lists, for instance, live in
+the structured `input` of the `todowrite` tool call inside the session's messages, and the host has its own component for
+them. A plugin that wants the same information reads it:
+
+```tsx
+const messages = context.data.session.message.list(sessionID)
+// scope it like the host: only messages after the last compaction are current
+const lastCompaction = messages.findLastIndex((message) => message.type === "compaction")
+for (const message of lastCompaction === -1 ? messages : messages.slice(lastCompaction + 1)) {
+  if (message.type !== "assistant") continue
+  for (const part of message.content) {
+    if (part.type === "tool" && part.name === "todowrite" && part.state.status === "completed") {
+      // part.state.input is JsonValue: an untyped record, narrow it yourself
+    }
+  }
+}
+```
+
+That input is a plain record, so narrow it defensively: a tool schema change should degrade to "nothing to show" rather
+than throw inside a slot render. `examples/sidebar-todo/tui.tsx` does exactly that, and its field names are marked
+unverified until a real `todowrite` call confirms them.
+
 ## Short interaction: dialogs + toast
 
 Prefer the host's native dialog APIs for alert/confirm/prompt/select flows. Use `context.ui.toast.show(...)` for short feedback that does not warrant a dialog.

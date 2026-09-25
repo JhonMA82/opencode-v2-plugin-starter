@@ -111,7 +111,7 @@ Keep transform callbacks cheap, deterministic, and repeatable. Do external I/O b
 
 ## 8. Examples
 
-`examples/` holds nine runnable plugins: eight for the CLI/TUI surface and one for the server. They are part of the boilerplate, not scratch files: they are typechecked, scanned by the compatibility guard, imported by the contract tests, and catalogued in `examples/README.md`.
+`examples/` holds ten runnable plugins: nine for the CLI/TUI surface and one for the server. They are part of the boilerplate, not scratch files: they are typechecked, scanned by the compatibility guard, imported by the contract tests, and catalogued in `examples/README.md`.
 
 Treat them as the reference for how a native TUI plugin is written:
 

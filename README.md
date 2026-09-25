@@ -19,9 +19,9 @@ It intentionally does not create a framework on top of OpenCode. Use the host AP
 
 - `src/index.ts` — native server plugin entrypoint.
 - `src/tui.tsx` — optional native CLI/TUI plugin entrypoint with a small footer + panel example.
-- `examples/` — nine runnable plugins: eight for the CLI/TUI surface (side panel, status rows, dialogs, settings list,
-  full screen route, events and notifications, custom markdown fence, slot placements) and one for the server (tool,
-  agent and command transforms plus a hook). Catalogued in `examples/README.md`. They are the reference for how a
+- `examples/` — ten runnable plugins: nine for the CLI/TUI surface (side panel, status rows, dialogs, settings
+  list, full screen route, events and notifications, custom markdown fence, slot placements, a left-sidebar task list) and
+  one for the server (tool, agent and command transforms plus a hook). Catalogued in `examples/README.md`. They are the reference for how a
   native plugin is written, and each one only reads the `context` it is handed.
 - `AGENTS.md` — hard rules for coding agents.
 - `.opencode/skills/opencode-v2-plugin-authoring/` — reusable skill for authoring/extending plugins.

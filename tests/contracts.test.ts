@@ -11,6 +11,7 @@ import dashboardPlugin from "../examples/dashboard/tui"
 import notifyPlugin from "../examples/notify/tui"
 import markdownPlugin from "../examples/markdown/tui"
 import slotsPlugin from "../examples/slots/tui"
+import sidebarTodoPlugin from "../examples/sidebar-todo/tui"
 import transformsPlugin from "../examples/transforms/index"
 
 /**
@@ -26,6 +27,7 @@ const EXAMPLES: Record<string, { plugin: { id: string; setup: unknown }; entry: 
   notify: { plugin: notifyPlugin, entry: "tui.tsx" },
   markdown: { plugin: markdownPlugin, entry: "tui.tsx" },
   slots: { plugin: slotsPlugin, entry: "tui.tsx" },
+  "sidebar-todo": { plugin: sidebarTodoPlugin, entry: "tui.tsx" },
   transforms: { plugin: transformsPlugin, entry: "index.ts" },
 }
 
@@ -109,9 +111,11 @@ describe("example catalog invariants", () => {
 
   test("no example reaches for a module-level mutable singleton", () => {
     // The examples exist to be modified by editing `context.*` reads only.
+    // Module scope is unindented, so anchoring at column 0 spares the local
+    // `let` an ordinary function is allowed to reassign.
     for (const name of Object.keys(EXAMPLES)) {
       const text = readExample(name)
-      expect(text).not.toMatch(/^\s*(let|var)\s+\w+/m)
+      expect(text).not.toMatch(/^(let|var)\s+\w+/m)
       expect(text).not.toMatch(/globalThis\./)
     }
   })

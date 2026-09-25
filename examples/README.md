@@ -1,6 +1,6 @@
 # Examples
 
-Nine runnable plugins, eight for the CLI/TUI surface and one for the server. They exist to be read, copied and modified — each one is a single file that reads
+Ten runnable plugins, nine for the CLI/TUI surface and one for the server. They exist to be read, copied and modified — each one is a single file that reads
 exclusively from the native `context` it is handed.
 
 Every example is part of the verification gate: `tsconfig.json` typechecks them, `scripts/check-v2.mjs` scans them for
@@ -20,6 +20,7 @@ legacy patterns, and `tests/contracts.test.ts` imports each entrypoint and asser
 | `notify/tui.tsx` | events | `data.on` on typed session events, `attention.notify`, unsubscribing on cleanup |
 | `markdown/tui.tsx` | markdown | a custom fence built with OpenTUI on `context.renderer` — **does not fire on 2.0.16**, see the finding |
 | `slots/tui.tsx` | slots | the placement matrix plus `sidebar.*`, `session.composer.top` and `prompt.footer.file` |
+| `sidebar-todo/tui.tsx` | `sidebar.content` | a task list in the left sidebar, read from the `todowrite` tool call in the session messages, with a defensive narrowing because that input is an untyped record |
 
 ### Server surfaces
 
