@@ -183,12 +183,15 @@ OpenTUI is not the blocker: in `top-level` block mode `MarkdownRenderable` calls
 top-level token, code blocks included. Verified on a real renderer using the host's own composition function: an
 `acme-todo` fence produced `dispatch:acme-todo` and then `HIT:acme-todo`, and the card it returned mounted.
 
-Still unconfirmed: whether the returned card's *text* paints in the live host. Mounting a renderable returned from a
-markdown callback is a different path from adding one to the tree directly, and a box border has been observed
-without its children.
+Confirmed on a live 2.0.16 host: a fence in model output reaches the callback and the card renders, content included.
 
-So: a plugin can restyle fenced blocks in model output, must not expect it for fences the user typed, and should
-verify painting on a real host before promising it.
+So a plugin can restyle fenced blocks in model output, and must not expect it for fences the user typed. Two traps
+worth naming, because both produced a wrong conclusion here:
+
+- Probe a fence you typed yourself and you will conclude the feature is dead.
+- Trust a headless harness over the real host. A card that mounted with a border but no text looked like an OpenTUI
+  limitation; it was a bug in the harness (a renderer built after first paint, and a second `CliRenderer`). The host
+  painted it correctly. Render a harness and an assertion are cheap, so it is easy to believe them over reality.
 
 ### Keymap command return type and ownership
 

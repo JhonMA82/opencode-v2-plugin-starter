@@ -99,7 +99,7 @@ writing new TUI code.
 | `setting` | dialogs + status | a settings list whose sections open sub-options, `storage.store` |
 | `dashboard` | `ui.router` + `ui.tabs` | a full screen route, `keymap.mode.push`, session tabs |
 | `notify` | events | `data.on` on typed events, `attention.notify`, unsubscribing |
-| `markdown` | markdown | a custom fence - **model output only on 2.0.16**, see the finding |
+| `markdown` | markdown | a custom fence - model output only, see the finding |
 | `slots` | slots | the placement matrix, `sidebar.*`, `session.composer.top` |
 | `sidebar-todo` | `sidebar.content` | a left-sidebar task list read from the `todowrite` tool call |
 | `transforms` | `ctx.tool` `ctx.agent` `ctx.command` | a real tool, an idempotent agent transform, a command, a hook |

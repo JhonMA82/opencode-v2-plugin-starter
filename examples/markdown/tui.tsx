@@ -5,13 +5,12 @@
 // fence language. Returning `undefined` falls back to the host's own rendering,
 // so take over only for content you actually understand.
 //
-// PARTIAL on 2.0.16. Verified with the host's own composition function on a real
-// renderer: the fence is dispatched and this callback runs, and the card mounts.
-// Two open points, both recorded in docs/V2-COMPATIBILITY.md:
-//   1. it only fires for fences in MODEL output; a fence typed by the user is
-//      rendered by a code renderable that never receives the plugin renderNode;
-//   2. whether this card's text paints in the live host is not confirmed yet.
-// Verify both on a real host before relying on this example.
+// Verified on a real 2.0.16 host: a fence in MODEL output is dispatched here and
+// the card renders. One real limit, recorded in docs/V2-COMPATIBILITY.md: a fence
+// typed by the user is rendered by a code renderable that never receives the
+// plugin renderNode, so only the assistant path reaches this callback.
+// Returning `undefined` falls back to the host's own rendering, so take over only
+// for content you actually understand, and never rely on this for user input.
 import { Plugin } from "@opencode/plugin/tui"
 import { BoxRenderable, TextRenderable } from "@opentui/core"
 

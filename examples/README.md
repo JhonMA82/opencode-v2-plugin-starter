@@ -19,7 +19,7 @@ if it disagrees with the code, the code is wrong.
 | `setting` | `./tui` | dialogs + status | a settings list whose section rows open sub-options, `storage.store` preferences |
 | `dashboard` | `./tui` | `ui.router` + `ui.tabs` | a full screen plugin route, `keymap.mode.push`, opening a session in a tab |
 | `notify` | `./tui` | events | `data.on` on typed session events, `attention.notify`, unsubscribing on cleanup |
-| `markdown` | `./tui` | markdown | a custom fence on `context.renderer` — **model output only on 2.0.16**, painting unconfirmed |
+| `markdown` | `./tui` | markdown | a custom fence on `context.renderer` — works for model output, not for a fence the user types |
 | `slots` | `./tui` | slots | the placement matrix plus `sidebar.*`, `session.composer.top`, `prompt.footer.file` |
 | `sidebar-todo` | `./tui` | `sidebar.content` | a task list in the left sidebar, read from the `todowrite` tool call |
 | `transforms` | `.` | `ctx.tool` `ctx.agent` `ctx.command` | a real tool with a JSON Schema input, an idempotent agent transform, a command, a hook, and disposing every registration |
@@ -119,12 +119,13 @@ Each file opens with a header naming the context surface it uses. To change an e
   `JsonValue` record, so it narrows defensively and its field names are marked unverified until a real `todowrite` call
   confirms them. A tool schema change must degrade to "nothing to show", never to an exception inside a slot render.
 
-## Two examples that document a gap instead of a capability
+## One example with a real limit worth knowing
 
-- **`markdown`**: the feature works, but only on the assistant path. The host merges every plugin's renderer map into
-  one code-block-only `renderNode` and the assistant transcript view uses it, so a fence in model output does reach a
-  plugin. A fence **typed by the user** is rendered by a code renderable that never receives that node. Probes over a
-  user message therefore record zero invocations, which reads as a dead feature if you stop there. Full evidence, and the
-  one open point, in `docs/V2-COMPATIBILITY.md`.
-- **`sidebar-todo`**: it builds a left-sidebar task list from the same `todowrite` call the host's own list uses. The
-  field names of that call's input are not in the plugin types, so treat them as unverified until you see a real call.
+- **`markdown`** works, and it works on the assistant path: the host merges every plugin's renderer map into one
+  code-block-only `renderNode` and the assistant transcript view uses it, so a fence in model output does reach the
+  plugin. A fence **typed by the user** is rendered by a code renderable that never receives that node, so the callback
+  does not run for it. Probing only user messages makes a working feature look dead, which is exactly the wrong
+  conclusion this catalog once carried. Mechanism and evidence in `docs/V2-COMPATIBILITY.md`.
+
+- **`sidebar-todo`** reads the `todowrite` call whose input is an untyped record, so it narrows defensively and its
+  field names are marked unverified until a real call confirms them.
